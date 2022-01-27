@@ -1,34 +1,8 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
-import appConfig from '../config.json';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
-function GlobalStyle() {
-  return (
-    <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-      body {
-        font-family: 'Open Sans', sans-serif;
-      }
-      /* App fit Height */ 
-      html, body, #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */
-    `}</style>
-  )
-}
+import appConfig from '../config.json';
 
 function Title(props) {
   const Tag = props.tag || 'h1';
@@ -48,11 +22,12 @@ function Title(props) {
 }
 
 function HomePage() {
-  const username = 'jholl-b';
+  const [username, setUsername] = useState('');
+
+  const router = useRouter();
 
   return (
     <div>
-      <GlobalStyle />
       <Box
         styleSheet={{
           display: 'flex',
@@ -87,6 +62,10 @@ function HomePage() {
           {/* Formulário */}
           <Box
             as="form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              router.push('chat');
+            }}
             styleSheet={{
               display: 'flex', 
               flexDirection: 'column', 
@@ -115,6 +94,8 @@ function HomePage() {
                   backgroundColor: appConfig.theme.colors.neutrals[800],
                 },
               }}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
             />
             <Button
               type='submit'
@@ -126,6 +107,7 @@ function HomePage() {
                 mainColorLight: appConfig.theme.colors.primary[400],
                 mainColorStrong: appConfig.theme.colors.primary[600],
               }}
+              disabled={username.length <= 2}
             />
           </Box>
           {/* Formulário */}
@@ -147,24 +129,29 @@ function HomePage() {
               minHeight: '240px',
             }}
           >
-            <Image
-              styleSheet={{
-                borderRadius: '50%',
-                marginBottom: '16px',
-              }}
-              src={`https://github.com/${username}.png`}
-            />
-            <Text
-              variant="body4"
-              styleSheet={{
-                color: appConfig.theme.colors.neutrals[200],
-                backgroundColor: appConfig.theme.colors.neutrals[900],
-                padding: '3px 10px',
-                borderRadius: '1000px'
-              }}
-            >
-              {username}
-            </Text>
+            {
+              username.length > 2 &&
+              <>
+                <Image
+                  styleSheet={{
+                    borderRadius: '50%',
+                    marginBottom: '16px',
+                  }}
+                  src={`https://github.com/${username}.png`}
+                />
+                <Text
+                  variant="body4"
+                  styleSheet={{
+                    color: appConfig.theme.colors.neutrals[200],
+                    backgroundColor: appConfig.theme.colors.neutrals[900],
+                    padding: '3px 10px',
+                    borderRadius: '1000px'
+                  }}
+                >
+                  {username}
+                </Text>
+              </>
+            }
           </Box>
           {/* Photo Area */}
         </Box>
