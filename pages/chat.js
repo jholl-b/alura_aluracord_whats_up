@@ -1,11 +1,30 @@
+import { Backdrop, CircularProgress } from '@mui/material';
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
-import { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { useState, useEffect } from 'react';
 import appConfig from '../config.json';
+
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzU2MzEwNywiZXhwIjoxOTU5MTM5MTA3fQ.ULbMAIqBf4jKJbp6uPqH0KxMQNJLBFQF-BxIJXY11yA';
+const SUPABASE_URL = 'https://iwxgwhhlvkmrfqwttxlx.supabase.co';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
 
   const [mensagem, setMensagem] = useState('');
   const [listaMensagens, setListaMensagens] = useState([]);
+  const [backdrop, setBackdrop] = useState(true);
+
+  useEffect(() => {
+    supabaseClient
+      .from('mensagens')
+      .select('*')
+      .order('id', { ascending: false })
+      .then(({ data }) => {
+        setListaMensagens(data);
+
+        setBackdrop(false);
+      });
+  }, []);
 
   function handleNovaMensagem(novaMensagem) {
 
@@ -13,12 +32,17 @@ export default function ChatPage() {
       return;
 
     const mensagem = {
-      id: listaMensagens.length + 1,
       de: 'jholl-b',
       texto: novaMensagem
     }
 
-    setListaMensagens([mensagem, ...listaMensagens]);
+    supabaseClient
+      .from('mensagens')
+      .insert(mensagem)
+      .then(({ data }) => {
+        setListaMensagens([data[0], ...listaMensagens]);
+      });
+
     setMensagem('');
   }
 
@@ -60,7 +84,7 @@ export default function ChatPage() {
           }}
         >
 
-          <MessageList mensagens={listaMensagens} setMensagens={setListaMensagens} />
+          <MessageList mensagens={listaMensagens} setMensagens={setListaMensagens} setBackdrop={setBackdrop} />
 
           <Box
             as="form"
@@ -109,6 +133,13 @@ export default function ChatPage() {
                 handleNovaMensagem(mensagem);
               }}
             />
+
+              <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={backdrop}
+              >
+                <CircularProgress color='inherit' />
+              </Backdrop>
           </Box>
         </Box>
       </Box>
@@ -135,7 +166,23 @@ function Header() {
 }
 
 function MessageList(props) {
-  var {mensagens, setMensagens} = props;
+  var {mensagens, setMensagens, setBackdrop} = props;
+
+  function handleApagaMensagem(id) {
+
+    setBackdrop(true);
+
+    supabaseClient
+      .from('mensagens')
+      .delete()
+      .match({ id: id })
+      .then(() => {
+        var newMsgs = mensagens.filter((msg) => msg.id != id);
+        setMensagens(newMsgs);
+
+        setBackdrop(false);
+      });
+  }
 
   return (
     <Box
@@ -204,10 +251,7 @@ function MessageList(props) {
             </Box>
             <Button
               label='&#x2718;'
-              onClick={() => {
-                var newMsgs = mensagens.filter((msg) => msg.id != mensagem.id);
-                setMensagens(newMsgs);
-              }}
+              onClick={() => handleApagaMensagem(mensagem.id)}
               styleSheet={{
                 marginRight: '10px',
                 width: '10px',
