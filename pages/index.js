@@ -35,7 +35,7 @@ function HomePage() {
           justifyContent: 'center',
           height: '100%',
           backgroundColor: appConfig.theme.colors.primary[500],
-          backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)',
+          backgroundImage: `url(/assets/img/whatsUp.jpg)`,
           backgroundRepeat: 'no-repeat',
           backgroundSize: 'cover',
           backgroundBlendMode: 'multiply'
@@ -64,7 +64,7 @@ function HomePage() {
             as="form"
             onSubmit={(event) => {
               event.preventDefault();
-              router.push('chat');
+              router.push(`chat?username=${username}`);
             }}
             styleSheet={{
               display: 'flex', 
